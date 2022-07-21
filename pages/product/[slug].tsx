@@ -1,13 +1,21 @@
 import { Box, Button, Chip, Grid, Typography } from "@mui/material"
 import { ShopLayout } from "../../components/layouts"
-import { initialData } from "../../database/products"
 import { ProductSlideshow } from '../../components/product/ProductSlideshow';
 import { ItemCounter } from "../../components/ui";
 import { SizeSelector } from "../../components/product";
+import { IProduct } from "../../interfaces";
+import { NextPage, GetStaticPaths, GetStaticProps } from "next";
+import { dbProducts } from "../../database";
 
-const product = initialData.products[0]
+interface Props {
+  product: IProduct
+}
 
-const slug = () => {
+const ProductPage: NextPage<Props> = ({product}) => {
+
+  // const router = useRouter()
+  // const {products: product, isLoading} = useProducts(`/products/${router.query.slug}`)
+
   return (
     <ShopLayout title={product.title} pageDescription={product.description}>
       <Grid container spacing={3}>
@@ -43,4 +51,64 @@ const slug = () => {
   )
 }
 
-export default slug
+// You should use getServerSideProps when:
+// - Only if you need to pre-render a page whose data must be fetched at request time
+
+// export const getServerSideProps: GetServerSideProps = async ({params}) => {
+//   const {slug = ''} = params as {slug: string};
+//   const product = dbProducts.getProductBySlug(slug)
+
+//   if (!product) {
+//     return {
+//       redirect: {
+//         destination: '/',
+//         permanent: false,
+//       }
+//     }
+//   }
+
+//   return {
+//     props: {
+//       product
+//     }
+//   }
+// }
+
+export const getStaticPaths: GetStaticPaths = async (ctx) => {
+
+  const productSlugs = await dbProducts.getAllProductsSlugs()
+
+  return {
+    paths: productSlugs.map(({slug}) => ({
+      params: {
+        slug
+      }
+    })),
+    fallback: 'blocking'
+  }
+}
+
+export const getStaticProps: GetStaticProps = async ({params}) => {
+
+  const {slug} = params as {slug: string};
+
+  const product = await dbProducts.getProductBySlug(slug)
+
+  if(!product) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: {
+      product
+    },
+    revalidate: 86400, // 60 * 60 * 24
+  }
+}
+
+export default ProductPage
