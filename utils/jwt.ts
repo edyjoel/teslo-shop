@@ -18,6 +18,10 @@ export const isValidToken = (token: string):Promise<string> => {
     throw new Error('JWT_SECRET_SEED is not defined')
   }
 
+  if(token.length <= 0) {
+    return Promise.reject('Token is empty')
+  }
+
   return new Promise((resolve, reject) => {
     try {
       jwt.verify(token, process.env.JWT_SECRET_SEED || '', (err, payload) => {

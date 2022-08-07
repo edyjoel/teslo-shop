@@ -10,7 +10,7 @@ interface Props {
   editable?: boolean;
 }
 
-const CartList:FC<Props> = ({editable = false}) => {
+export const CartList:FC<Props> = ({editable = false}) => {
   const {cart, updateCartQuantity, removeCartProduct} = useContext(CartContext);
 
   const onNewCartQuantityValue = (product: ICartProduct, newQuantityValue: number) => {

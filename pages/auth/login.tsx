@@ -16,6 +16,7 @@ type FormData = {
 
 const LoginPage = () => {
   const router = useRouter()
+  const destination = router.query.p?.toString() || '/'
   const {loginUser} = useContext(AuthContext)
   const {register, handleSubmit, formState: {errors}} = useForm<FormData>()
   const [showError, setshowError] = useState(false)
@@ -31,8 +32,7 @@ const LoginPage = () => {
       }, 3000)
       return
     }
-
-    router.replace('/')
+    router.replace(destination)
   }
 
   return (
@@ -54,7 +54,7 @@ const LoginPage = () => {
               <Button type="submit" color="secondary" className="circular-btn" size='large' fullWidth>Ingresar</Button>
             </Grid>
             <Grid item xs={12} display='flex' justifyContent='end'>
-              <NextLink href='/auth/register' passHref>
+              <NextLink href={`/auth/register?p=${destination}`} passHref>
                 <Link underline='always'>
                   ¿No tienes cuenta?
                 </Link>
