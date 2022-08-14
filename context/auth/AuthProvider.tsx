@@ -5,6 +5,7 @@ import { FC, useEffect, useReducer } from 'react';
 import { testloApi } from '../../api';
 import { IUser } from '../../interfaces';
 import { AuthContext, authReducer } from './';
+import {useSession, signOut} from 'next-auth/react'
 
 export interface AuthState {
  isLoggedIn: boolean;
@@ -19,11 +20,18 @@ const Auth_INITIAL_STATE: AuthState = {
 export const AuthProvider:FC<any> = ({children}) => {
 
  const [state, dispatch] = useReducer(authReducer, Auth_INITIAL_STATE)
+ const {data, status} = useSession()
  const router = useRouter()
 
  useEffect(() => {
-  checkToken()
- }, [])
+  if(status === 'authenticated'){
+   dispatch({type: '[Auth] - Login', payload: data?.user as IUser})
+  }
+ } ,[status, data])
+
+//  useEffect(() => {
+//   checkToken()
+//  }, [])
 
  const checkToken = async() => {
 
@@ -77,9 +85,18 @@ export const AuthProvider:FC<any> = ({children}) => {
  }
 
  const logout = () => {
-  Cookies.remove('token')
+  // Cookies.remove('token')
   Cookies.remove('cart')
-  router.reload()
+  Cookies.remove('firstName')
+  Cookies.remove('lastName')
+  Cookies.remove('addresss')
+  Cookies.remove('addresss2')
+  Cookies.remove('zip')
+  Cookies.remove('city')
+  Cookies.remove('country')
+  Cookies.remove('phone')
+  // router.reload()
+  signOut()
  }
 
  return (

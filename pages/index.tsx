@@ -7,7 +7,6 @@ import { useProducts } from '../hooks'
 // import { initialData } from '../database/products'
 
 const HomePage: NextPage = () => {
-
   const {products, isLoading} = useProducts('/products')
 
   return (
