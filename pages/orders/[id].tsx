@@ -1,6 +1,6 @@
 import { GetServerSideProps, NextPage } from 'next';
 import NextLink from 'next/link'
-import { Box, Button, Card, CardContent, Chip, Divider, Grid, Link, Typography } from "@mui/material"
+import { Box, Button, Card, CardContent, Chip, CircularProgress, Divider, Grid, Link, Typography } from "@mui/material"
 import CartList from "../../components/cart/CartList"
 import { OrderSummary } from "../../components/cart"
 import { ShopLayout } from "../../components/layouts"
@@ -8,14 +8,51 @@ import { CreditCardOffOutlined, CreditScoreOutlined } from '@mui/icons-material'
 import { getSession } from 'next-auth/react';
 import { dbOrders } from '../../database';
 import { IOrder } from '../../interfaces/order';
+import {PayPalButtons} from '@paypal/react-paypal-js'
+import { testloApi } from '../../api';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
 
+export type OrderResponseBody = {
+  id: string;
+  status:
+    | "COMPLETED"
+    | "SAVED"
+    | "APPROVED"
+    | "VOIDED"
+    | "PAYER_ACTION_REQUIRED";
+}
 interface Props {
   order: IOrder
 }
 
 const OrderPage: NextPage<Props> = ({order}) => {
 
+  const router = useRouter();
   const {shippingAddress} = order;
+  const [isPaying, setIsPaying] = useState(false);
+
+  const onOrderCompleted = async (details: OrderResponseBody) => {
+    if(details.status !== 'COMPLETED') {
+      return alert('Order not completed');
+    }
+
+    setIsPaying(true);
+
+    try {
+      const {data} = await testloApi.post(`/orders/pay`, {
+        transactionId: details.id,
+        orderId: order._id
+      });
+
+      router.reload();
+    } catch (error) {
+      setIsPaying(false);
+      console.log(error);
+      alert('Error');
+    }
+
+  }
 
   return (
     <ShopLayout title="Resumen de la orden" pageDescription="Resumen de la orden">
@@ -80,20 +117,46 @@ const OrderPage: NextPage<Props> = ({order}) => {
                 tax: order.tax,
               }} />
               <Box sx={{mt: 3}} display="flex" flexDirection="column">
-                {
-                  order.isPaid ?  (
-                    <Chip
-                      sx={{my:2}}
-                      label="Orden ya fue pagada"
-                      variant="outlined"
-                      color="success"
-                      icon={<CreditScoreOutlined />}
-                    />
-                  ):
-                  (
-                    <h1>Pagar</h1>
-                  )
-                }
+                <Box display="flex" justifyContent="center" className="fadeIn" sx={{display: isPaying ? 'flex' : 'none'}}>
+                  <CircularProgress />
+                </Box>
+                <Box flexDirection='column' sx={{display: isPaying ? 'none' : 'flex'}}>
+                  {
+                    order.isPaid ?  (
+                      <Chip
+                        sx={{my:2}}
+                        label="Orden ya fue pagada"
+                        variant="outlined"
+                        color="success"
+                        icon={<CreditScoreOutlined />}
+                      />
+                    ):
+                    (
+                      <PayPalButtons
+                        createOrder={(data, actions) => {
+                          return actions.order.create({
+                            purchase_units: [
+                              {
+                                amount: {
+                                  value: `${order.total}`,
+                                },
+                              },
+                            ],
+                          });
+                        }}
+                        onApprove={(data, actions): any => {
+                          return actions.order!.capture().then(function(details: any) {
+                            onOrderCompleted(details);
+                            // console.log(details);
+                            // const name = details.payer.name.given_name;
+                            // Show a success message to your buyer
+                            // alert('Transaction completed by ' + name);
+                          });
+                        }}
+                      />
+                    )
+                  }
+                </Box>
               </Box>
             </CardContent>
           </Card>
