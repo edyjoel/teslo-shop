@@ -1,6 +1,6 @@
 import { PeopleOutline } from "@mui/icons-material"
 import { AdminLayout } from "../../components/layouts"
-import {DataGrid, GridColDef, GridValueGetterParams} from '@mui/x-data-grid';
+import {DataGrid, GridColDef, GridRenderCellParams, GridValueGetterParams} from '@mui/x-data-grid';
 import { Grid, Select, MenuItem } from '@mui/material';
 import useSWR from "swr";
 import { IUser } from '../../interfaces/user';
@@ -56,7 +56,7 @@ const UsersPage = () => {
       field: 'role',
       headerName: 'Rol',
       width: 300,
-      renderCell: ({row}: GridValueGetterParams) => {
+      renderCell: ({row}: GridRenderCellParams) => {
         return (
           <Select
             value={row.role}
