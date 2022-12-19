@@ -1,6 +1,6 @@
 import { AdminLayout } from '../../../components/layouts/AdminLayout';
 import { ConfirmationNumberOutlined, CategoryOutlined, AddBoxOutlined } from '@mui/icons-material';
-import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRenderCellParams, GridValueGetterParams } from '@mui/x-data-grid';
 import { Box, Button, CardMedia, Chip, Grid, Link } from '@mui/material';
 import useSWR from 'swr';
 import { IOrder, IUser } from '../../../interfaces';
@@ -11,7 +11,7 @@ const columns: GridColDef[] = [
   {
     field: 'img',
     headerName: 'Foto',
-    renderCell: ({row}: GridValueGetterParams) => {
+    renderCell: ({row}: GridRenderCellParams) => {
       return (
         <a href={`/product/${row.slug}`} target="_blank" rel="noreferrer">
           <CardMedia
@@ -28,7 +28,7 @@ const columns: GridColDef[] = [
     field: 'title',
     headerName: 'Título',
     width: 250,
-    renderCell: ({row}: GridValueGetterParams) => {
+    renderCell: ({row}: GridRenderCellParams) => {
       return (
         <NextLink href={`/admin/products/${row.slug}`} passHref>
           <Link underline='always'>
